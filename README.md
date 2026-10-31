@@ -1,6 +1,21 @@
 # Smart Inventory Reorder & Safety Stock Analytics Dashboard
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-GitHub_Pages-2563eb?style=for-the-badge&logo=github)](https://saibenarji-dasari.github.io/inventory-reorder-dashboard/)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/SaiBenarji-Dasari/inventory-reorder-dashboard)
+[![License: MIT](https://img.shields.io/badge/License-MIT-success?style=for-the-badge)](https://opensource.org/licenses/MIT)
+
 > **Enterprise Decision Support System for Inventory Health, Replenishment Automation, and Stock-Out Prevention.**
+
+---
+
+## 🌐 Live Deployment
+The interactive analytics application is publicly deployed and live:
+
+👉 **[https://saibenarji-dasari.github.io/inventory-reorder-dashboard/](https://saibenarji-dasari.github.io/inventory-reorder-dashboard/)**
+
+- **Hosting Platform:** GitHub Pages
+- **Client Runtime:** Pure Vanilla HTML5, CSS3, JavaScript & Chart.js (Zero installation required)
+- **Status:** Active & Production-Ready
 
 ---
 
@@ -24,7 +39,9 @@ inventory-reorder-dashboard/
 ├── index.html                   # Interactive browser dashboard UI
 ├── styles.css                   # Enterprise design system & responsive layout
 ├── app.js                       # State engine, Chart.js integration, modals, CSV export
+├── server.ps1                   # Local PowerShell HTTP web server
 ├── README.md                    # System documentation & deployment guide
+├── .gitignore                   # Ignore rules for temp & system files
 │
 ├── SQL/
 │   ├── inventory_db_schema.sql  # DDL schema (Tables, Indexes, Constraints, Analytical Views)
@@ -75,41 +92,35 @@ $$DoC = \frac{\text{On-Hand Quantity}}{d_{\text{avg}}}$$
 ## 4. How to Run & Use the Deliverables
 
 ### A. Run the Interactive Web Dashboard
-No external build tools or Node.js runtime required:
-1. Navigate to the project root folder:
+**Online:**  
+Visit the deployed application at **[https://saibenarji-dasari.github.io/inventory-reorder-dashboard/](https://saibenarji-dasari.github.io/inventory-reorder-dashboard/)**
+
+**Locally:**
+1. Navigate to the project folder:
    ```bash
    cd inventory-reorder-dashboard
    ```
-2. Double-click `index.html` to open directly in any modern browser (Chrome, Edge, Firefox, Safari).
-3. Or serve locally:
-   ```bash
-   python -m http.server 8000
+2. Double-click `index.html` to open directly in your browser.
+3. Or start the included lightweight server:
+   ```powershell
+   .\server.ps1 -Port 8080
    ```
-   and visit `http://localhost:8000`.
-
-**Features in the App:**
-- Live search by SKU, Product Name, or Category.
-- Category, Supplier, and Status pill filters.
-- Reorder PO generator modal (calculates recommended order size and expected delivery date).
-- Stock Adjustment modal (audits and updates stock immediately with live chart updates).
-- Built-in Safety Stock & ROP simulator tool.
-- One-click CSV export of active filtered data.
+   and open `http://localhost:8080/`.
 
 ### B. Execute the SQL Database Scripts
-1. Open **SQL Server Management Studio (SSMS)**, **Azure Data Studio**, or your SQL client.
-2. Execute `SQL/inventory_db_schema.sql` to create `InventoryDashboardDB`, tables, indexes, and views.
-3. Execute `SQL/inventory_sample_data.sql` to populate dimensions and facts.
-4. Run queries in `SQL/inventory_queries.sql` to generate executive KPI reports.
+1. Open **SQL Server Management Studio (SSMS)** or **Azure Data Studio**.
+2. Run `SQL/inventory_db_schema.sql` to generate `InventoryDashboardDB`, tables, constraints, and views.
+3. Run `SQL/inventory_sample_data.sql` to populate dimensions and facts.
+4. Execute `SQL/inventory_queries.sql` to generate executive KPI reports.
 
 ### C. Import into Power BI
 1. Open **Power BI Desktop**.
-2. Click **Get Data > Text/CSV** and import all 5 files from the `Data/` folder.
-3. Configure relationships in the Model view as documented in `PowerBI/powerbi_guide.md`.
-4. Copy the DAX measures from `PowerBI/powerbi_measures.dax` into a `_Measures` table.
-5. Build the dashboard visual layout following the specifications in `PowerBI/powerbi_guide.md`.
+2. Click **Get Data > Text/CSV** and load all 5 files from the `Data/` folder.
+3. Configure star schema relationships following `PowerBI/powerbi_guide.md`.
+4. Import DAX measures from `PowerBI/powerbi_measures.dax`.
+5. Arrange dashboard visuals as outlined in `PowerBI/powerbi_guide.md`.
 
 ### D. Use in Microsoft Excel
 1. Open Excel and navigate to **Data > Get Data > From Text/CSV**.
 2. Import the 5 CSV files into individual worksheet tabs (`Suppliers`, `Products`, `Inventory`, `Sales`, `PurchaseOrders`).
 3. Add a `Dashboard` tab and create Pivot Tables and Pivot Charts using the formulas specified in the guide.
-
