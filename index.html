@@ -3,262 +3,583 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Smart Inventory Reorder & Safety Stock Analytics</title>
+  <title>SmartFlow | Enterprise Inventory & Safety Stock Platform</title>
   <link rel="stylesheet" href="styles.css" />
-  <!-- Chart.js CDN for High-Performance Client-Side Visualizations -->
+  <!-- Chart.js CDN for High-Performance Visualizations -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-  <!-- App Header -->
-  <header class="app-header">
-    <div class="header-container">
-      <div class="brand-section">
-        <div class="brand-logo">📦</div>
-        <div>
-          <h1 class="brand-title">Smart Inventory Reorder Analytics</h1>
-          <p class="brand-subtitle">Enterprise Safety Stock & Stock-Out Prevention System</p>
+  <!-- ========================================================================
+       1. AUTHENTICATION VIEW (SPLIT-SCREEN LOGIN & REGISTRATION)
+       ======================================================================== -->
+  <div id="authView" class="auth-wrapper">
+    <!-- Left Hero Brand Panel -->
+    <div class="auth-hero">
+      <div class="auth-hero-header">
+        <div class="auth-hero-logo">📦</div>
+        <div class="auth-hero-brand">
+          <h2>SmartFlow Analytics</h2>
+          <p>Enterprise Supply Chain & Inventory DSS</p>
         </div>
       </div>
-      <div class="header-actions">
-        <button class="btn btn-outline" onclick="openCalcModal()">
-          🧮 Safety Stock Calculator
-        </button>
-        <button class="btn btn-outline" onclick="exportToCSV()">
-          📥 Export CSV
-        </button>
+
+      <div class="auth-hero-body">
+        <h1 class="auth-hero-title">Predict stock-outs before they happen.</h1>
+        <p class="auth-hero-desc">
+          Automate dynamic reorder points, monitor safety stock deficits, and eliminate supply chain blind spots with real-time analytics.
+        </p>
+
+        <div class="auth-stats-grid">
+          <div class="auth-stat-item">
+            <strong>99.4%</strong>
+            <span>Order Fill Rate</span>
+          </div>
+          <div class="auth-stat-item">
+            <strong>-38%</strong>
+            <span>Stock-Out Incidents</span>
+          </div>
+          <div class="auth-stat-item">
+            <strong>$180K+</strong>
+            <span>Working Capital Saved</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="auth-hero-footer">
+        <span>&copy; 2026 SmartFlow Analytics Inc. &bull; Enterprise SOC-2 Type II Certified</span>
       </div>
     </div>
-  </header>
 
-  <!-- Main Content Layout -->
-  <main class="main-content">
+    <!-- Right Form Side -->
+    <div class="auth-form-side">
+      <div class="auth-card">
 
-    <!-- KPI Summary Row -->
-    <section class="kpi-grid">
-      <!-- Total Units -->
-      <div class="kpi-card primary">
-        <div class="kpi-header">
-          <span class="kpi-label">Total Units On Hand</span>
-          <div class="kpi-icon">📊</div>
+        <!-- Tab Switcher -->
+        <div class="auth-tabs">
+          <button class="auth-tab-btn active" id="tabBtnLogin" onclick="switchAuthTab('login')">Sign In</button>
+          <button class="auth-tab-btn" id="tabBtnRegister" onclick="switchAuthTab('register')">Create Account</button>
         </div>
-        <div class="kpi-value" id="kpiTotalUnits">0</div>
-        <div class="kpi-subtext">Across 20 monitored SKUs</div>
-      </div>
 
-      <!-- Inventory Value -->
-      <div class="kpi-card success">
-        <div class="kpi-header">
-          <span class="kpi-label">Total Inventory Value</span>
-          <div class="kpi-icon">💰</div>
+        <!-- 1-Click Demo Logins for Fast Evaluation -->
+        <div class="demo-login-box">
+          <div class="demo-login-title">
+            <span>⚡ 1-Click Demo Accounts</span>
+            <span style="font-size:0.65rem; color:var(--text-muted);">Instant Access</span>
+          </div>
+          <div class="demo-chips">
+            <button type="button" class="demo-chip" onclick="quickDemoLogin('admin')">👑 Admin (Executive)</button>
+            <button type="button" class="demo-chip" onclick="quickDemoLogin('procurement')">💼 Procurement</button>
+            <button type="button" class="demo-chip" onclick="quickDemoLogin('warehouse')">📦 Warehouse Lead</button>
+          </div>
         </div>
-        <div class="kpi-value" id="kpiTotalValue">$0</div>
-        <div class="kpi-subtext">Total active working capital</div>
-      </div>
 
-      <!-- Critical Items (Below Safety Stock) -->
-      <div class="kpi-card danger">
-        <div class="kpi-header">
-          <span class="kpi-label">Critical Stock Items</span>
-          <div class="kpi-icon">🚨</div>
-        </div>
-        <div class="kpi-value" id="kpiCriticalCount">0</div>
-        <div class="kpi-subtext">Breached safety stock limits</div>
-      </div>
-
-      <!-- Reorder Alerts -->
-      <div class="kpi-card warning">
-        <div class="kpi-header">
-          <span class="kpi-label">Reorder Alerts</span>
-          <div class="kpi-icon">⚠️</div>
-        </div>
-        <div class="kpi-value" id="kpiReorderCount">0</div>
-        <div class="kpi-subtext">At or below Reorder Point (ROP)</div>
-      </div>
-
-      <!-- Overstock Items -->
-      <div class="kpi-card purple">
-        <div class="kpi-header">
-          <span class="kpi-label">Overstock Items</span>
-          <div class="kpi-icon">📦</div>
-        </div>
-        <div class="kpi-value" id="kpiOverstockCount">0</div>
-        <div class="kpi-subtext">>1.5× reorder point threshold</div>
-      </div>
-
-      <!-- Days of Cover -->
-      <div class="kpi-card primary">
-        <div class="kpi-header">
-          <span class="kpi-label">Avg Days of Cover</span>
-          <div class="kpi-icon">⏱️</div>
-        </div>
-        <div class="kpi-value" id="kpiAvgDaysCover">0.0 d</div>
-        <div class="kpi-subtext">Estimated portfolio runway</div>
-      </div>
-    </section>
-
-    <!-- Visual Analytics Charts Row -->
-    <section class="charts-grid">
-      <!-- Stock Level vs ROP vs Safety Stock -->
-      <div class="chart-card">
-        <div class="chart-header">
-          <h2 class="chart-title">📈 Stock Level vs. Reorder Point & Safety Stock</h2>
-          <span style="font-size: 0.75rem; color: var(--text-muted);">Top High-Velocity SKUs</span>
-        </div>
-        <div class="chart-container">
-          <canvas id="chartStockOverview"></canvas>
-        </div>
-      </div>
-
-      <!-- Inventory Value by Category -->
-      <div class="chart-card">
-        <div class="chart-header">
-          <h2 class="chart-title">🥧 Capital Allocation by Category</h2>
-        </div>
-        <div class="chart-container">
-          <canvas id="chartCategoryValuation"></canvas>
-        </div>
-      </div>
-    </section>
-
-    <!-- Inventory Data Table & Controls -->
-    <section class="table-section">
-      <div class="toolbar">
-        <div class="toolbar-primary">
-          <!-- Search -->
-          <div class="search-wrapper">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="searchInput" class="search-input" placeholder="Search by SKU, Product Name, Category..." />
+        <!-- Sign In Form -->
+        <form id="loginForm" onsubmit="handleLogin(event)">
+          <div class="form-field" style="margin-bottom: 1.15rem;">
+            <label class="form-label" for="loginEmail">Work Email</label>
+            <input type="email" id="loginEmail" class="form-input" placeholder="name@company.com" required value="admin@smartflow.io" />
           </div>
 
-          <!-- Select Filters -->
-          <div class="filter-controls">
-            <select id="filterCategory" class="select-control" title="Filter by Category"></select>
-            <select id="filterSupplier" class="select-control" title="Filter by Supplier"></select>
-            <select id="selectSort" class="select-control" title="Sort Products">
-              <option value="status">Sort: Critical Severity</option>
-              <option value="daysOfCover">Sort: Lowest Days of Cover</option>
-              <option value="onHand">Sort: Lowest Stock On-Hand</option>
-              <option value="value">Sort: Highest Inventory Value</option>
-              <option value="name">Sort: Product Name (A-Z)</option>
+          <div class="form-field" style="margin-bottom: 1.25rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label class="form-label" for="loginPassword">Password</label>
+              <a href="#" onclick="showToast('Password reset link sent to demo email.', 'info'); return false;" style="font-size: 0.75rem; color: var(--primary); text-decoration: none; font-weight: 600;">Forgot password?</a>
+            </div>
+            <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required value="demo1234" />
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--text-muted); cursor: pointer;">
+              <input type="checkbox" id="rememberMe" checked style="cursor: pointer;" />
+              Remember this device
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem; font-size: 0.9rem;">
+            Sign In to Dashboard &rarr;
+          </button>
+        </form>
+
+        <!-- Registration Form -->
+        <form id="registerForm" style="display: none;" onsubmit="handleRegister(event)">
+          <div class="form-field" style="margin-bottom: 1rem;">
+            <label class="form-label" for="regName">Full Name</label>
+            <input type="text" id="regName" class="form-input" placeholder="Alex Morgan" required />
+          </div>
+
+          <div class="form-field" style="margin-bottom: 1rem;">
+            <label class="form-label" for="regEmail">Work Email</label>
+            <input type="email" id="regEmail" class="form-input" placeholder="alex@company.com" required />
+          </div>
+
+          <div class="form-field" style="margin-bottom: 1rem;">
+            <label class="form-label" for="regRole">Role & Permissions</label>
+            <select id="regRole" class="form-input" style="cursor: pointer;">
+              <option value="Supply Chain Director (Admin)">Supply Chain Director (Admin)</option>
+              <option value="Procurement Specialist">Procurement Specialist</option>
+              <option value="Warehouse Operations Lead">Warehouse Operations Lead</option>
+              <option value="Inventory Analyst">Inventory Analyst</option>
             </select>
           </div>
+
+          <div class="form-field" style="margin-bottom: 1.25rem;">
+            <label class="form-label" for="regPassword">Create Password</label>
+            <input type="password" id="regPassword" class="form-input" placeholder="At least 6 characters" minlength="6" required />
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem; font-size: 0.9rem;">
+            Create Account & Continue &rarr;
+          </button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       2. MAIN APPLICATION SHELL (AUTHENTICATED PORTAL)
+       ======================================================================== -->
+  <div id="appShell" class="app-shell" style="display: none;">
+
+    <!-- Left Enterprise Sidebar -->
+    <aside class="app-sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">📦</div>
+        <div class="sidebar-brand-text">
+          <h1>SmartFlow DSS</h1>
+          <span>Inventory Intelligence</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Operations</div>
+        <a class="nav-item active" onclick="switchView('overview')" id="navOverview">
+          <span class="nav-icon">📊</span>
+          <span>Overview Dashboard</span>
+        </a>
+        <a class="nav-item" onclick="switchView('inventory')" id="navInventory">
+          <span class="nav-icon">📦</span>
+          <span>Inventory Ledger</span>
+        </a>
+        <a class="nav-item" onclick="switchView('orders')" id="navOrders">
+          <span class="nav-icon">🚚</span>
+          <span>Purchase Orders</span>
+          <span class="nav-badge danger" id="sidebarPOBadge">6 Active</span>
+        </a>
+
+        <div class="nav-section-title">Analytics & Tools</div>
+        <a class="nav-item" onclick="switchView('simulator')" id="navSimulator">
+          <span class="nav-icon">🧮</span>
+          <span>Safety Stock AI</span>
+        </a>
+        <a class="nav-item" onclick="switchView('suppliers')" id="navSuppliers">
+          <span class="nav-icon">🏢</span>
+          <span>Supplier Risk Matrix</span>
+        </a>
+      </nav>
+
+      <!-- Sidebar User Profile & Logout -->
+      <div class="sidebar-footer">
+        <div class="user-avatar" id="sidebarAvatar">AU</div>
+        <div class="user-info">
+          <div class="user-name" id="sidebarUserName">Admin User</div>
+          <span class="user-role-badge" id="sidebarUserRole">Admin</span>
+        </div>
+        <button class="logout-icon-btn" onclick="handleLogout()" title="Sign Out">
+          🚪
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Stream -->
+    <div class="app-main">
+
+      <!-- Top Header Bar -->
+      <header class="top-header">
+        <div class="header-breadcrumbs">
+          <span class="breadcrumb-root">SmartFlow</span>
+          <span class="breadcrumb-sep">/</span>
+          <span class="breadcrumb-current" id="headerBreadcrumb">Overview Dashboard</span>
         </div>
 
-        <!-- Status Filter Pills -->
-        <div class="status-pills">
-          <span style="font-size:0.8rem; font-weight:600; color:var(--text-muted); margin-right:0.25rem;">Status Filter:</span>
-          <button class="pill-btn active" data-status="All">All Products</button>
-          <button class="pill-btn" data-status="Critical">🚨 Critical</button>
-          <button class="pill-btn" data-status="Reorder Needed">⚠️ Reorder Needed</button>
-          <button class="pill-btn" data-status="Healthy">✅ Healthy</button>
-          <button class="pill-btn" data-status="Overstock">📦 Overstock</button>
+        <div class="header-right-tools">
+          <button class="btn btn-primary btn-sm" onclick="openAddProductModal()">
+            + Add New SKU
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="exportToCSV()">
+            📥 Export CSV
+          </button>
+
+          <!-- Notification Bell -->
+          <div style="position: relative;">
+            <button class="notif-bell-btn" onclick="toggleNotifications()" title="Notifications">
+              🔔
+              <span class="notif-badge" id="notifBadgeCount">5</span>
+            </button>
+
+            <!-- Notification Dropdown -->
+            <div class="notif-dropdown" id="notifDropdown">
+              <div class="notif-dropdown-header">
+                <strong style="font-size: 0.85rem;">Inventory Alerts</strong>
+                <span style="font-size: 0.7rem; color: var(--text-muted);" id="notifCountText">5 Critical Items</span>
+              </div>
+              <div class="notif-dropdown-body" id="notifList">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+
         </div>
+      </header>
+
+      <!-- View Container -->
+      <div class="page-container">
+
+        <!-- ==================== VIEW 1: OVERVIEW DASHBOARD ==================== -->
+        <div class="view-section active" id="viewOverview">
+
+          <!-- Alert Banner for Critical Stock -->
+          <div class="alert-banner" id="urgentAlertBanner">
+            <div class="alert-banner-content">
+              <div class="alert-beacon"></div>
+              <div class="alert-banner-text">
+                <strong id="bannerAlertTitle">Critical Stock Alert: 5 SKUs Below Safety Stock Threshold</strong>
+                <p>Imminent stock-out exposure detected. Review recommended purchase orders immediately.</p>
+              </div>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="switchView('inventory'); filterByStatusPill('Critical');">
+              Inspect Critical Items &rarr;
+            </button>
+          </div>
+
+          <!-- KPI Grid -->
+          <section class="kpi-grid">
+            <div class="kpi-card primary">
+              <div class="kpi-header">
+                <span class="kpi-label">Total Units On-Hand</span>
+                <div class="kpi-icon-wrap">📊</div>
+              </div>
+              <div class="kpi-value" id="kpiTotalUnits">0</div>
+              <div class="kpi-footer">Across 20 active monitored SKUs</div>
+            </div>
+
+            <div class="kpi-card success">
+              <div class="kpi-header">
+                <span class="kpi-label">Total Inventory Value</span>
+                <div class="kpi-icon-wrap">💰</div>
+              </div>
+              <div class="kpi-value" id="kpiTotalValue">$0</div>
+              <div class="kpi-footer">Working capital allocated in stock</div>
+            </div>
+
+            <div class="kpi-card danger">
+              <div class="kpi-header">
+                <span class="kpi-label">Critical Safety Breaches</span>
+                <div class="kpi-icon-wrap">🚨</div>
+              </div>
+              <div class="kpi-value" id="kpiCriticalCount">0</div>
+              <div class="kpi-footer">OnHand &le; Safety Stock (Urgent)</div>
+            </div>
+
+            <div class="kpi-card warning">
+              <div class="kpi-header">
+                <span class="kpi-label">Reorder Alerts</span>
+                <div class="kpi-icon-wrap">⚠️</div>
+              </div>
+              <div class="kpi-value" id="kpiReorderCount">0</div>
+              <div class="kpi-footer">At or below Reorder Point ($ROP$)</div>
+            </div>
+
+            <div class="kpi-card violet">
+              <div class="kpi-header">
+                <span class="kpi-label">Overstock SKUs</span>
+                <div class="kpi-icon-wrap">📦</div>
+              </div>
+              <div class="kpi-value" id="kpiOverstockCount">0</div>
+              <div class="kpi-footer">>1.5&times; target reorder threshold</div>
+            </div>
+
+            <div class="kpi-card cyan">
+              <div class="kpi-header">
+                <span class="kpi-label">Avg Days of Cover</span>
+                <div class="kpi-icon-wrap">⏱️</div>
+              </div>
+              <div class="kpi-value" id="kpiAvgDaysCover">0.0 d</div>
+              <div class="kpi-footer">Estimated operational runway</div>
+            </div>
+          </section>
+
+          <!-- Analytics Charts -->
+          <section class="charts-grid">
+            <div class="chart-card">
+              <div class="chart-header">
+                <h2 class="chart-title">📈 Stock Level vs. Reorder Point ($ROP$) & Safety Stock</h2>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">High-Velocity SKUs</span>
+              </div>
+              <div class="chart-container">
+                <canvas id="chartStockOverview"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-header">
+                <h2 class="chart-title">🥧 Capital Allocation by Category</h2>
+              </div>
+              <div class="chart-container">
+                <canvas id="chartCategoryValuation"></canvas>
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+        <!-- ==================== VIEW 2: INVENTORY LEDGER ==================== -->
+        <div class="view-section" id="viewInventory">
+          <div class="table-panel">
+            <div class="table-toolbar">
+              <div class="toolbar-row">
+                <div class="search-field">
+                  <span class="search-icon">🔍</span>
+                  <input type="text" id="searchInput" placeholder="Search by SKU, Product Name, Category..." />
+                </div>
+
+                <div class="toolbar-filters">
+                  <select id="filterCategory" class="select-filter" title="Filter by Category"></select>
+                  <select id="filterSupplier" class="select-filter" title="Filter by Supplier"></select>
+                  <select id="selectSort" class="select-filter" title="Sort Products">
+                    <option value="status">Sort: Critical Severity First</option>
+                    <option value="daysOfCover">Sort: Lowest Days of Cover</option>
+                    <option value="onHand">Sort: Lowest Stock On-Hand</option>
+                    <option value="value">Sort: Highest Valuation</option>
+                    <option value="name">Sort: Product Name (A-Z)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Status Pills -->
+              <div class="status-pills">
+                <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted); margin-right:0.25rem;">STOCK STATUS:</span>
+                <button class="status-pill active" data-status="All">All Products</button>
+                <button class="status-pill" data-status="Critical">🚨 Critical</button>
+                <button class="status-pill" data-status="Reorder Needed">⚠️ Reorder Needed</button>
+                <button class="status-pill" data-status="Healthy">✅ Healthy</button>
+                <button class="status-pill" data-status="Overstock">📦 Overstock</button>
+              </div>
+            </div>
+
+            <!-- Table -->
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Product & SKU</th>
+                    <th>Category</th>
+                    <th>Supplier / Lead Time</th>
+                    <th>On-Hand</th>
+                    <th>Safety / ROP</th>
+                    <th>Days of Cover</th>
+                    <th>Inventory Value</th>
+                    <th>Health Status</th>
+                    <th style="text-align: right;">Quick Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="inventoryTableBody">
+                  <!-- Dynamic rows -->
+                </tbody>
+              </table>
+            </div>
+
+            <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); background: #fafbfc;">
+              <span id="tableSummaryCount">Showing 20 products</span>
+              <span>Reorder Formula: <code>ROP = (Avg Sales &times; Lead Time) + Safety Stock</code></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== VIEW 3: PURCHASE ORDERS ==================== -->
+        <div class="view-section" id="viewOrders">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <h2 style="font-size: 1.25rem; font-weight: 800;">🚚 Inbound Purchase Orders & Pipeline</h2>
+              <p style="font-size: 0.8rem; color: var(--text-muted);">Monitor supplier replenishments, delivery schedules, and receipt audits.</p>
+            </div>
+            <button class="btn btn-primary" onclick="openOrderModal(state.products[0].id)">
+              + Issue New Purchase Order
+            </button>
+          </div>
+
+          <div class="table-panel">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>PO Number</th>
+                    <th>Item & SKU</th>
+                    <th>Supplier</th>
+                    <th>Order Date</th>
+                    <th>Expected Arrival</th>
+                    <th>Ordered Qty</th>
+                    <th>Status</th>
+                    <th>Committed Cost</th>
+                    <th style="text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="purchaseOrdersTableBody">
+                  <!-- Injected dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== VIEW 4: SAFETY STOCK SIMULATOR ==================== -->
+        <div class="view-section" id="viewSimulator">
+          <div style="max-width: 840px;">
+            <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem;">🧮 Safety Stock & Reorder Point AI Simulator</h2>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+              Simulate dynamic safety stock thresholds under stochastic demand surges and supplier shipping delays.
+            </p>
+
+            <div class="chart-card">
+              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem;">
+                <div class="form-field">
+                  <label class="form-label" for="calcAvgSales">Average Daily Usage (Units/Day)</label>
+                  <input type="number" id="calcAvgSales" class="form-input" value="4.0" step="0.1" min="0.1" oninput="calculateSimulation()" />
+                </div>
+                <div class="form-field">
+                  <label class="form-label" for="calcMaxSales">Max Peak Daily Sales (Units/Day)</label>
+                  <input type="number" id="calcMaxSales" class="form-input" value="8.0" step="0.1" min="0.1" oninput="calculateSimulation()" />
+                </div>
+                <div class="form-field">
+                  <label class="form-label" for="calcAvgLead">Average Vendor Lead Time (Days)</label>
+                  <input type="number" id="calcAvgLead" class="form-input" value="10" min="1" oninput="calculateSimulation()" />
+                </div>
+                <div class="form-field">
+                  <label class="form-label" for="calcMaxLead">Max Possible Lead Time (Days)</label>
+                  <input type="number" id="calcMaxLead" class="form-input" value="16" min="1" oninput="calculateSimulation()" />
+                </div>
+              </div>
+
+              <!-- Output Box -->
+              <div style="background: var(--surface-alt); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <strong style="display: block; font-size: 0.95rem;">Recommended Safety Stock Buffer ($SS$)</strong>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">(Max Usage &times; Max Lead) - (Avg Usage &times; Avg Lead)</span>
+                  </div>
+                  <strong id="resSafetyStock" style="font-size: 1.6rem; color: var(--danger);">0 units</strong>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 0.75rem;">
+                  <div>
+                    <strong style="display: block; font-size: 0.95rem;">Calculated Reorder Point ($ROP$)</strong>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">(Avg Daily Usage &times; Lead Time) + Safety Stock</span>
+                  </div>
+                  <strong id="resROP" style="font-size: 1.6rem; color: var(--primary);">0 units</strong>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--border); padding-top: 0.75rem;">
+                  <span style="font-size: 0.8rem; color: var(--text-muted);">Baseline Consumption During Lead Time:</span>
+                  <span id="resLeadDemand" style="font-weight: 700; color: var(--text-main);">0 units</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== VIEW 5: SUPPLIER RISK MATRIX ==================== -->
+        <div class="view-section" id="viewSuppliers">
+          <div>
+            <h2 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 0.5rem;">🏢 Supplier Vulnerability & Performance Matrix</h2>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+              Evaluate vendor risk ratings, lead times, active product dependencies, and procurement exposures.
+            </p>
+          </div>
+
+          <div class="supplier-grid" id="supplierCardsGrid">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
       </div>
+    </div>
+  </div>
 
-      <!-- Data Table -->
-      <div class="table-responsive">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Product / SKU</th>
-              <th>Category</th>
-              <th>Supplier & Lead Time</th>
-              <th>On-Hand</th>
-              <th>Safety / ROP</th>
-              <th>Days of Cover</th>
-              <th>Inventory Value</th>
-              <th>Health Status</th>
-              <th style="text-align: right;">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="inventoryTableBody">
-            <!-- Dynamic rows injected via app.js -->
-          </tbody>
-        </table>
-      </div>
+  <!-- ========================================================================
+       MODALS & DIALOGS
+       ======================================================================== -->
 
-      <!-- Table Footer Summary -->
-      <div class="table-footer">
-        <span id="tableSummaryCount">Showing 20 products</span>
-        <span>Standard Reorder Logic: <code>OnHand &le; ReorderPoint</code> | <code>ROP = (Avg Sales &times; Lead Time) + Safety Stock</code></span>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- ==================== MODALS ==================== -->
-
-  <!-- Modal 1: Create Purchase Order / Reorder -->
-  <div class="modal-overlay" id="orderModalOverlay">
-    <div class="modal-box">
+  <!-- Modal 1: Generate Reorder PO -->
+  <div class="modal-backdrop" id="orderModalOverlay">
+    <div class="modal-dialog">
       <div class="modal-header">
-        <h3 class="modal-title">📦 Generate Replenishment Purchase Order</h3>
+        <h3 class="modal-title">📦 Generate Replenishment PO</h3>
         <button class="modal-close-btn" onclick="closeModal('orderModalOverlay')">&times;</button>
       </div>
       <div class="modal-body">
         <input type="hidden" id="modalPOProductId" />
-        <div class="form-group">
-          <span class="form-label">Product:</span>
+        <div class="form-field">
+          <span class="form-label">Product Name & SKU:</span>
           <strong id="modalPOProductName" style="font-size: 0.95rem;"></strong>
         </div>
-        <div class="form-group">
-          <span class="form-label">Supplier & Lead Time:</span>
+        <div class="form-field">
+          <span class="form-label">Vendor & Lead Time:</span>
           <span id="modalPOSupplier" style="color: var(--text-muted);"></span>
         </div>
-        <div class="form-group">
+        <div class="form-field">
           <span class="form-label">Current Stock Condition:</span>
           <span id="modalPOCurrentStock" style="color: var(--text-muted);"></span>
         </div>
-        <div class="form-group">
+        <div class="form-field">
           <label class="form-label" for="modalPOOrderQty">Order Quantity (Units):</label>
           <input type="number" id="modalPOOrderQty" class="form-input" min="1" />
-          <span class="form-help">Calculated automatically using target safety stock buffer replenishment.</span>
+          <span class="form-help">Calculated automatically using target buffer replenishment formula.</span>
         </div>
-        <div style="background: var(--surface-alt); padding: 0.85rem; border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center;">
+        <div style="background: var(--surface-alt); padding: 1rem; border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center;">
           <div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">Estimated Delivery Date</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Expected Arrival Date</div>
             <strong id="modalPOArrivalDate"></strong>
           </div>
           <div style="text-align: right;">
-            <div style="font-size: 0.75rem; color: var(--text-muted);">Total Order Cost</div>
-            <strong id="modalPOTotalCost" style="font-size: 1.1rem; color: var(--primary);">$0</strong>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Committed Order Value</div>
+            <strong id="modalPOTotalCost" style="font-size: 1.25rem; color: var(--primary);">$0</strong>
           </div>
         </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="closeModal('orderModalOverlay')">Cancel</button>
-        <button class="btn btn-primary" onclick="submitPurchaseOrder()">Confirm & Issue PO</button>
+        <button class="btn btn-primary" onclick="submitPurchaseOrder()">Issue Purchase Order</button>
       </div>
     </div>
   </div>
 
   <!-- Modal 2: Stock Adjustment -->
-  <div class="modal-overlay" id="adjustModalOverlay">
-    <div class="modal-box">
+  <div class="modal-backdrop" id="adjustModalOverlay">
+    <div class="modal-dialog">
       <div class="modal-header">
         <h3 class="modal-title">✏️ Manual Stock Level Adjustment</h3>
         <button class="modal-close-btn" onclick="closeModal('adjustModalOverlay')">&times;</button>
       </div>
       <div class="modal-body">
         <input type="hidden" id="modalAdjProductId" />
-        <div class="form-group">
+        <div class="form-field">
           <span class="form-label">Product:</span>
           <strong id="modalAdjProductName" style="font-size: 0.95rem;"></strong>
         </div>
-        <div class="form-group">
+        <div class="form-field">
           <span class="form-label">Current Recorded On-Hand:</span>
           <strong id="modalAdjCurrentOnHand" style="color: var(--text-muted);"></strong>
         </div>
-        <div class="form-group">
-          <label class="form-label" for="modalAdjNewQty">New Physical On-Hand Count:</label>
+        <div class="form-field">
+          <label class="form-label" for="modalAdjNewQty">Physical Count (New On-Hand):</label>
           <input type="number" id="modalAdjNewQty" class="form-input" min="0" />
         </div>
-        <div class="form-group">
-          <label class="form-label" for="modalAdjReason">Adjustment Reason:</label>
-          <select id="modalAdjReason" class="select-control">
-            <option value="Physical Inventory Audit">Physical Inventory Audit / Cycle Count</option>
-            <option value="Damaged Goods Write-off">Damaged Goods / Scrap Write-off</option>
+        <div class="form-field">
+          <label class="form-label" for="modalAdjReason">Audit Reason Code:</label>
+          <select id="modalAdjReason" class="form-input">
+            <option value="Physical Inventory Audit">Cycle Count / Audit Reconciliation</option>
+            <option value="Damaged Goods Write-off">Damaged Goods Scrap Write-off</option>
             <option value="Inbound Delivery Receipt">Inbound Delivery Receipt</option>
             <option value="Customer Return Restock">Customer Return Restock</option>
           </select>
@@ -266,75 +587,76 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="closeModal('adjustModalOverlay')">Cancel</button>
-        <button class="btn btn-primary" onclick="submitStockAdjustment()">Save Adjustment</button>
+        <button class="btn btn-primary" onclick="submitStockAdjustment()">Commit Audit Update</button>
       </div>
     </div>
   </div>
 
-  <!-- Modal 3: Safety Stock & ROP Calculator -->
-  <div class="modal-overlay" id="calcModalOverlay">
-    <div class="modal-box" style="max-width: 600px;">
+  <!-- Modal 3: Add New Product -->
+  <div class="modal-backdrop" id="addProductModalOverlay">
+    <div class="modal-dialog">
       <div class="modal-header">
-        <h3 class="modal-title">🧮 Safety Stock & Reorder Point Calculator</h3>
-        <button class="modal-close-btn" onclick="closeModal('calcModalOverlay')">&times;</button>
+        <h3 class="modal-title">✨ Register New Inventory SKU</h3>
+        <button class="modal-close-btn" onclick="closeModal('addProductModalOverlay')">&times;</button>
       </div>
       <div class="modal-body">
-        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
-          Simulate safety stock thresholds and reorder points based on daily demand variance and vendor lead time variability.
-        </p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-field">
+            <label class="form-label" for="newSku">SKU Code</label>
+            <input type="text" id="newSku" class="form-input" placeholder="e.g. ELE-099" required />
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="newCategory">Category</label>
+            <select id="newCategory" class="form-input">
+              <option value="Electronics">Electronics</option>
+              <option value="Packaging">Packaging</option>
+              <option value="Hardware">Hardware</option>
+              <option value="Office Supplies">Office Supplies</option>
+              <option value="Safety">Safety</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label class="form-label" for="newName">Product Title</label>
+          <input type="text" id="newName" class="form-input" placeholder="e.g. Laser Measurement Sensor" required />
+        </div>
+
+        <div class="form-field">
+          <label class="form-label" for="newSupplier">Primary Supplier</label>
+          <select id="newSupplier" class="form-input"></select>
+        </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-          <div class="form-group">
-            <label class="form-label" for="calcAvgSales">Avg Daily Sales (Units):</label>
-            <input type="number" id="calcAvgSales" class="form-input" value="4.0" step="0.1" min="0.1" oninput="calculateSimulation()" />
+          <div class="form-field">
+            <label class="form-label" for="newCost">Unit Cost ($)</label>
+            <input type="number" id="newCost" class="form-input" value="35.00" step="0.5" min="0.1" />
           </div>
-          <div class="form-group">
-            <label class="form-label" for="calcMaxSales">Peak / Max Daily Sales (Units):</label>
-            <input type="number" id="calcMaxSales" class="form-input" value="8.0" step="0.1" min="0.1" oninput="calculateSimulation()" />
+          <div class="form-field">
+            <label class="form-label" for="newOnHand">Initial Stock On-Hand</label>
+            <input type="number" id="newOnHand" class="form-input" value="25" min="0" />
           </div>
-          <div class="form-group">
-            <label class="form-label" for="calcAvgLead">Avg Lead Time (Days):</label>
-            <input type="number" id="calcAvgLead" class="form-input" value="10" min="1" oninput="calculateSimulation()" />
+          <div class="form-field">
+            <label class="form-label" for="newAvgDaily">Avg Daily Usage</label>
+            <input type="number" id="newAvgDaily" class="form-input" value="3.0" step="0.1" min="0.1" />
           </div>
-          <div class="form-group">
-            <label class="form-label" for="calcMaxLead">Max Possible Lead Time (Days):</label>
-            <input type="number" id="calcMaxLead" class="form-input" value="15" min="1" oninput="calculateSimulation()" />
+          <div class="form-field">
+            <label class="form-label" for="newSafety">Safety Stock Buffer</label>
+            <input type="number" id="newSafety" class="form-input" value="15" min="1" />
           </div>
-        </div>
-
-        <!-- Simulation Output Card -->
-        <div style="background: var(--surface-alt); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 0.75rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 0.85rem; font-weight: 600;">Recommended Safety Stock:</span>
-            <strong id="resSafetyStock" style="font-size: 1.15rem; color: var(--danger);">0 units</strong>
-          </div>
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 0.85rem; font-weight: 600;">Calculated Reorder Point (ROP):</span>
-            <strong id="resROP" style="font-size: 1.15rem; color: var(--primary);">0 units</strong>
-          </div>
-          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--border); padding-top: 0.5rem;">
-            <span style="font-size: 0.75rem; color: var(--text-muted);">Baseline Demand During Lead Time:</span>
-            <span id="resLeadDemand" style="font-size: 0.85rem; color: var(--text-muted);">0 units</span>
-          </div>
-        </div>
-
-        <div style="font-size: 0.75rem; color: var(--text-muted); background: var(--bg); padding: 0.75rem; border-radius: var(--radius-sm);">
-          <strong>Formulas Applied:</strong><br />
-          &bull; <code>Safety Stock = (Max Sales &times; Max Lead) - (Avg Sales &times; Avg Lead)</code><br />
-          &bull; <code>Reorder Point = (Avg Sales &times; Avg Lead) + Safety Stock</code>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-primary" onclick="closeModal('calcModalOverlay')">Done</button>
+        <button class="btn btn-outline" onclick="closeModal('addProductModalOverlay')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitNewProduct()">Save & Register SKU</button>
       </div>
     </div>
   </div>
 
-  <!-- Toast Container -->
-  <div class="toast-container" id="toastContainer"></div>
+  <!-- Toast Notification Rack -->
+  <div class="toast-rack" id="toastRack"></div>
 
-  <!-- Core App Logic -->
+  <!-- Application Script -->
   <script src="app.js"></script>
 </body>
 </html>
-
