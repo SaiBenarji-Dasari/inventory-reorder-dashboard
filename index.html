@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>SmartFlow | Enterprise Inventory & Safety Stock Platform</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=2.1.0" />
   <!-- Chart.js CDN for High-Performance Visualizations -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -209,6 +212,9 @@
           </button>
           <button class="btn btn-outline btn-sm" onclick="exportToCSV()">
             📥 Export CSV
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="handleLogout()" title="Sign Out & Return to Login Screen">
+            🚪 Sign Out / Login
           </button>
 
           <!-- Notification Bell -->
@@ -657,6 +663,6 @@
   <div class="toast-rack" id="toastRack"></div>
 
   <!-- Application Script -->
-  <script src="app.js"></script>
+  <script src="app.js?v=2.1.0"></script>
 </body>
 </html>

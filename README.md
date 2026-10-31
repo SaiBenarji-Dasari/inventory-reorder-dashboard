@@ -17,6 +17,16 @@ The interactive analytics application is publicly deployed and live:
 - **Client Runtime:** Pure Vanilla HTML5, CSS3, JavaScript & Chart.js (Zero installation required)
 - **Status:** Active & Production-Ready
 
+### 🔐 Live Demo Authentication & Test Logins
+The application includes a built-in enterprise authentication portal with role-based access control.
+You can register a custom account via the **Create Account** tab or click any **1-Click Demo Login**:
+- 👑 **Supply Chain Director (Admin):** `director@smartflow.io` / `demo1234`
+- 💼 **Procurement Specialist:** `elena@smartflow.io` / `demo1234`
+- 📦 **Warehouse Operations Lead:** `marcus@smartflow.io` / `demo1234`
+
+> [!TIP]
+> **Browser Cache Notice:** If your browser previously cached an earlier version, perform a hard refresh (`Ctrl + Shift + R` on Windows/Linux or `Cmd + Shift + R` on Mac) to load the latest release immediately.
+
 ---
 
 ## 1. Project Overview & Business Value
