@@ -1,0 +1,155 @@
+// =============================================================================
+// POWER BI DAX MEASURES LIBRARY
+// Project: Inventory Reorder & Safety Stock Dashboard
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// 1. CORE VOLUME & VALUATION MEASURES
+// -----------------------------------------------------------------------------
+
+Total Units On Hand = 
+SUM(FactInventory[OnHandQty])
+
+Total Available Units = 
+SUM(FactInventory[AvailableQty])
+
+Total Reserved Units = 
+SUM(FactInventory[ReservedQty])
+
+Total Inventory Value = 
+SUMX(
+    FactInventory,
+    FactInventory[OnHandQty] * RELATED(DimProduct[UnitCost])
+)
+
+Average Unit Cost = 
+AVERAGEX(
+    DimProduct,
+    DimProduct[UnitCost]
+)
+
+// -----------------------------------------------------------------------------
+// 2. STOCK HEALTH & EXPOSURE MEASURES
+// -----------------------------------------------------------------------------
+
+Reorder Alert Count = 
+CALCULATE(
+    DISTINCTCOUNT(FactInventory[ProductID]),
+    FILTER(
+        FactInventory,
+        FactInventory[OnHandQty] <= RELATED(DimProduct[ReorderPoint])
+    )
+)
+
+Critical Stock Count = 
+CALCULATE(
+    DISTINCTCOUNT(FactInventory[ProductID]),
+    FILTER(
+        FactInventory,
+        FactInventory[OnHandQty] <= RELATED(DimProduct[SafetyStock])
+    )
+)
+
+Overstock Item Count = 
+CALCULATE(
+    DISTINCTCOUNT(FactInventory[ProductID]),
+    FILTER(
+        FactInventory,
+        FactInventory[OnHandQty] > (RELATED(DimProduct[ReorderPoint]) * 1.5)
+    )
+)
+
+Healthy Item Count = 
+CALCULATE(
+    DISTINCTCOUNT(FactInventory[ProductID]),
+    FILTER(
+        FactInventory,
+        FactInventory[OnHandQty] > RELATED(DimProduct[ReorderPoint]) &&
+        FactInventory[OnHandQty] <= (RELATED(DimProduct[ReorderPoint]) * 1.5)
+    )
+)
+
+Stock-Out Risk Ratio = 
+DIVIDE(
+    [Critical Stock Count],
+    DISTINCTCOUNT(DimProduct[ProductID]),
+    0
+)
+
+Total Safety Stock Gap = 
+SUMX(
+    FILTER(
+        FactInventory,
+        FactInventory[OnHandQty] < RELATED(DimProduct[SafetyStock])
+    ),
+    RELATED(DimProduct[SafetyStock]) - FactInventory[OnHandQty]
+)
+
+Total Replenishment Capital Needed = 
+SUMX(
+    FILTER(
+        FactInventory,
+        FactInventory[OnHandQty] <= RELATED(DimProduct[ReorderPoint])
+    ),
+    (RELATED(DimProduct[ReorderPoint]) - FactInventory[OnHandQty] + RELATED(DimProduct[SafetyStock])) 
+    * RELATED(DimProduct[UnitCost])
+)
+
+// -----------------------------------------------------------------------------
+// 3. RUNWAY & VELOCITY MEASURES
+// -----------------------------------------------------------------------------
+
+Days of Cover = 
+DIVIDE(
+    [Total Units On Hand],
+    SUM(DimProduct[AvgDailySales]),
+    0
+)
+
+Stock Status Dynamic = 
+SWITCH(
+    TRUE(),
+    SELECTEDVALUE(FactInventory[OnHandQty]) <= SELECTEDVALUE(DimProduct[SafetyStock]), "Critical",
+    SELECTEDVALUE(FactInventory[OnHandQty]) <= SELECTEDVALUE(DimProduct[ReorderPoint]), "Reorder Needed",
+    SELECTEDVALUE(FactInventory[OnHandQty]) > (SELECTEDVALUE(DimProduct[ReorderPoint]) * 1.5), "Overstock",
+    "Healthy"
+)
+
+Status Color Hex = 
+SWITCH(
+    [Stock Status Dynamic],
+    "Critical", "#EF4444",
+    "Reorder Needed", "#F59E0B",
+    "Overstock", "#8B5CF6",
+    "Healthy", "#10B981",
+    "#94A3B8"
+)
+
+// -----------------------------------------------------------------------------
+// 4. SUPPLIER RISK & PIPELINE MEASURES
+// -----------------------------------------------------------------------------
+
+Average Supplier Lead Time = 
+AVERAGEX(
+    RELATEDTABLE(DimSupplier),
+    DimSupplier[LeadTimeDays]
+)
+
+Average Supplier Risk Score = 
+AVERAGEX(
+    DimSupplier,
+    DimSupplier[RiskScore]
+)
+
+Inbound Pending PO Units = 
+CALCULATE(
+    SUM(FactPurchaseOrder[OrderedQty]) - SUM(FactPurchaseOrder[ReceivedQty]),
+    FactPurchaseOrder[Status] IN {"Pending", "In-Transit"}
+)
+
+Inbound Pending PO Value = 
+CALCULATE(
+    SUM(FactPurchaseOrder[TotalCost]),
+    FactPurchaseOrder[Status] IN {"Pending", "In-Transit"}
+)
+

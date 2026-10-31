@@ -1,0 +1,9 @@
+SupplierID,SupplierName,LeadTimeDays,RiskScore,ContactEmail,Country
+1,Northwind Labs,12,72,orders@northwindlabs.com,USA
+2,Boxline Logistics Co,7,34,support@boxlineco.com,Canada
+3,ForgePro Industrial,15,84,procurement@forgepro.de,Germany
+4,PrintOps Supplies,4,20,sales@printops.com,USA
+5,SecureWear Safety Ltd,9,61,accounts@securewear.co.uk,UK
+6,Apex Microelectronics,18,78,supply@apexmicro.tw,Taiwan
+7,Titan Fasteners Corp,10,45,service@titanfasteners.com,USA
+

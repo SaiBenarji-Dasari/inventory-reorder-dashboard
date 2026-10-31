@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Inventory Reorder & Safety Stock Analytics</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Chart.js CDN for High-Performance Client-Side Visualizations -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-section">
+        <div class="brand-logo">📦</div>
+        <div>
+          <h1 class="brand-title">Smart Inventory Reorder Analytics</h1>
+          <p class="brand-subtitle">Enterprise Safety Stock & Stock-Out Prevention System</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-outline" onclick="openCalcModal()">
+          🧮 Safety Stock Calculator
+        </button>
+        <button class="btn btn-outline" onclick="exportToCSV()">
+          📥 Export CSV
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="main-content">
+
+    <!-- KPI Summary Row -->
+    <section class="kpi-grid">
+      <!-- Total Units -->
+      <div class="kpi-card primary">
+        <div class="kpi-header">
+          <span class="kpi-label">Total Units On Hand</span>
+          <div class="kpi-icon">📊</div>
+        </div>
+        <div class="kpi-value" id="kpiTotalUnits">0</div>
+        <div class="kpi-subtext">Across 20 monitored SKUs</div>
+      </div>
+
+      <!-- Inventory Value -->
+      <div class="kpi-card success">
+        <div class="kpi-header">
+          <span class="kpi-label">Total Inventory Value</span>
+          <div class="kpi-icon">💰</div>
+        </div>
+        <div class="kpi-value" id="kpiTotalValue">$0</div>
+        <div class="kpi-subtext">Total active working capital</div>
+      </div>
+
+      <!-- Critical Items (Below Safety Stock) -->
+      <div class="kpi-card danger">
+        <div class="kpi-header">
+          <span class="kpi-label">Critical Stock Items</span>
+          <div class="kpi-icon">🚨</div>
+        </div>
+        <div class="kpi-value" id="kpiCriticalCount">0</div>
+        <div class="kpi-subtext">Breached safety stock limits</div>
+      </div>
+
+      <!-- Reorder Alerts -->
+      <div class="kpi-card warning">
+        <div class="kpi-header">
+          <span class="kpi-label">Reorder Alerts</span>
+          <div class="kpi-icon">⚠️</div>
+        </div>
+        <div class="kpi-value" id="kpiReorderCount">0</div>
+        <div class="kpi-subtext">At or below Reorder Point (ROP)</div>
+      </div>
+
+      <!-- Overstock Items -->
+      <div class="kpi-card purple">
+        <div class="kpi-header">
+          <span class="kpi-label">Overstock Items</span>
+          <div class="kpi-icon">📦</div>
+        </div>
+        <div class="kpi-value" id="kpiOverstockCount">0</div>
+        <div class="kpi-subtext">>1.5× reorder point threshold</div>
+      </div>
+
+      <!-- Days of Cover -->
+      <div class="kpi-card primary">
+        <div class="kpi-header">
+          <span class="kpi-label">Avg Days of Cover</span>
+          <div class="kpi-icon">⏱️</div>
+        </div>
+        <div class="kpi-value" id="kpiAvgDaysCover">0.0 d</div>
+        <div class="kpi-subtext">Estimated portfolio runway</div>
+      </div>
+    </section>
+
+    <!-- Visual Analytics Charts Row -->
+    <section class="charts-grid">
+      <!-- Stock Level vs ROP vs Safety Stock -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h2 class="chart-title">📈 Stock Level vs. Reorder Point & Safety Stock</h2>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Top High-Velocity SKUs</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="chartStockOverview"></canvas>
+        </div>
+      </div>
+
+      <!-- Inventory Value by Category -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h2 class="chart-title">🥧 Capital Allocation by Category</h2>
+        </div>
+        <div class="chart-container">
+          <canvas id="chartCategoryValuation"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Inventory Data Table & Controls -->
+    <section class="table-section">
+      <div class="toolbar">
+        <div class="toolbar-primary">
+          <!-- Search -->
+          <div class="search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search by SKU, Product Name, Category..." />
+          </div>
+
+          <!-- Select Filters -->
+          <div class="filter-controls">
+            <select id="filterCategory" class="select-control" title="Filter by Category"></select>
+            <select id="filterSupplier" class="select-control" title="Filter by Supplier"></select>
+            <select id="selectSort" class="select-control" title="Sort Products">
+              <option value="status">Sort: Critical Severity</option>
+              <option value="daysOfCover">Sort: Lowest Days of Cover</option>
+              <option value="onHand">Sort: Lowest Stock On-Hand</option>
+              <option value="value">Sort: Highest Inventory Value</option>
+              <option value="name">Sort: Product Name (A-Z)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Status Filter Pills -->
+        <div class="status-pills">
+          <span style="font-size:0.8rem; font-weight:600; color:var(--text-muted); margin-right:0.25rem;">Status Filter:</span>
+          <button class="pill-btn active" data-status="All">All Products</button>
+          <button class="pill-btn" data-status="Critical">🚨 Critical</button>
+          <button class="pill-btn" data-status="Reorder Needed">⚠️ Reorder Needed</button>
+          <button class="pill-btn" data-status="Healthy">✅ Healthy</button>
+          <button class="pill-btn" data-status="Overstock">📦 Overstock</button>
+        </div>
+      </div>
+
+      <!-- Data Table -->
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Product / SKU</th>
+              <th>Category</th>
+              <th>Supplier & Lead Time</th>
+              <th>On-Hand</th>
+              <th>Safety / ROP</th>
+              <th>Days of Cover</th>
+              <th>Inventory Value</th>
+              <th>Health Status</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryTableBody">
+            <!-- Dynamic rows injected via app.js -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Table Footer Summary -->
+      <div class="table-footer">
+        <span id="tableSummaryCount">Showing 20 products</span>
+        <span>Standard Reorder Logic: <code>OnHand &le; ReorderPoint</code> | <code>ROP = (Avg Sales &times; Lead Time) + Safety Stock</code></span>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- Modal 1: Create Purchase Order / Reorder -->
+  <div class="modal-overlay" id="orderModalOverlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">📦 Generate Replenishment Purchase Order</h3>
+        <button class="modal-close-btn" onclick="closeModal('orderModalOverlay')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="modalPOProductId" />
+        <div class="form-group">
+          <span class="form-label">Product:</span>
+          <strong id="modalPOProductName" style="font-size: 0.95rem;"></strong>
+        </div>
+        <div class="form-group">
+          <span class="form-label">Supplier & Lead Time:</span>
+          <span id="modalPOSupplier" style="color: var(--text-muted);"></span>
+        </div>
+        <div class="form-group">
+          <span class="form-label">Current Stock Condition:</span>
+          <span id="modalPOCurrentStock" style="color: var(--text-muted);"></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="modalPOOrderQty">Order Quantity (Units):</label>
+          <input type="number" id="modalPOOrderQty" class="form-input" min="1" />
+          <span class="form-help">Calculated automatically using target safety stock buffer replenishment.</span>
+        </div>
+        <div style="background: var(--surface-alt); padding: 0.85rem; border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Estimated Delivery Date</div>
+            <strong id="modalPOArrivalDate"></strong>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Total Order Cost</div>
+            <strong id="modalPOTotalCost" style="font-size: 1.1rem; color: var(--primary);">$0</strong>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('orderModalOverlay')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitPurchaseOrder()">Confirm & Issue PO</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Stock Adjustment -->
+  <div class="modal-overlay" id="adjustModalOverlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">✏️ Manual Stock Level Adjustment</h3>
+        <button class="modal-close-btn" onclick="closeModal('adjustModalOverlay')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="modalAdjProductId" />
+        <div class="form-group">
+          <span class="form-label">Product:</span>
+          <strong id="modalAdjProductName" style="font-size: 0.95rem;"></strong>
+        </div>
+        <div class="form-group">
+          <span class="form-label">Current Recorded On-Hand:</span>
+          <strong id="modalAdjCurrentOnHand" style="color: var(--text-muted);"></strong>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="modalAdjNewQty">New Physical On-Hand Count:</label>
+          <input type="number" id="modalAdjNewQty" class="form-input" min="0" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="modalAdjReason">Adjustment Reason:</label>
+          <select id="modalAdjReason" class="select-control">
+            <option value="Physical Inventory Audit">Physical Inventory Audit / Cycle Count</option>
+            <option value="Damaged Goods Write-off">Damaged Goods / Scrap Write-off</option>
+            <option value="Inbound Delivery Receipt">Inbound Delivery Receipt</option>
+            <option value="Customer Return Restock">Customer Return Restock</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('adjustModalOverlay')">Cancel</button>
+        <button class="btn btn-primary" onclick="submitStockAdjustment()">Save Adjustment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Safety Stock & ROP Calculator -->
+  <div class="modal-overlay" id="calcModalOverlay">
+    <div class="modal-box" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 class="modal-title">🧮 Safety Stock & Reorder Point Calculator</h3>
+        <button class="modal-close-btn" onclick="closeModal('calcModalOverlay')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">
+          Simulate safety stock thresholds and reorder points based on daily demand variance and vendor lead time variability.
+        </p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label" for="calcAvgSales">Avg Daily Sales (Units):</label>
+            <input type="number" id="calcAvgSales" class="form-input" value="4.0" step="0.1" min="0.1" oninput="calculateSimulation()" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="calcMaxSales">Peak / Max Daily Sales (Units):</label>
+            <input type="number" id="calcMaxSales" class="form-input" value="8.0" step="0.1" min="0.1" oninput="calculateSimulation()" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="calcAvgLead">Avg Lead Time (Days):</label>
+            <input type="number" id="calcAvgLead" class="form-input" value="10" min="1" oninput="calculateSimulation()" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="calcMaxLead">Max Possible Lead Time (Days):</label>
+            <input type="number" id="calcMaxLead" class="form-input" value="15" min="1" oninput="calculateSimulation()" />
+          </div>
+        </div>
+
+        <!-- Simulation Output Card -->
+        <div style="background: var(--surface-alt); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 0.75rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.85rem; font-weight: 600;">Recommended Safety Stock:</span>
+            <strong id="resSafetyStock" style="font-size: 1.15rem; color: var(--danger);">0 units</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.85rem; font-weight: 600;">Calculated Reorder Point (ROP):</span>
+            <strong id="resROP" style="font-size: 1.15rem; color: var(--primary);">0 units</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed var(--border); padding-top: 0.5rem;">
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Baseline Demand During Lead Time:</span>
+            <span id="resLeadDemand" style="font-size: 0.85rem; color: var(--text-muted);">0 units</span>
+          </div>
+        </div>
+
+        <div style="font-size: 0.75rem; color: var(--text-muted); background: var(--bg); padding: 0.75rem; border-radius: var(--radius-sm);">
+          <strong>Formulas Applied:</strong><br />
+          &bull; <code>Safety Stock = (Max Sales &times; Max Lead) - (Avg Sales &times; Avg Lead)</code><br />
+          &bull; <code>Reorder Point = (Avg Sales &times; Avg Lead) + Safety Stock</code>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="closeModal('calcModalOverlay')">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Core App Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
+

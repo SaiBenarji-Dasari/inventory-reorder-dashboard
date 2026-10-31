@@ -1,0 +1,22 @@
+ProductID,SKU,ProductName,Category,SupplierID,UnitCost,ReorderPoint,SafetyStock,AvgDailySales,MaxDailySales
+1,ELE-001,Industrial Sensor X12,Electronics,1,120.00,30,18,2.5,5.0
+2,PKG-002,Heavy-Duty Packing Tape Roll,Packaging,2,18.50,38,22,5.0,9.0
+3,HDW-003,Grade-8 Steel Fasteners Set,Hardware,3,42.00,28,16,3.0,6.0
+4,OFF-004,Thermal Barcode Label Stock,Office Supplies,4,12.50,40,25,8.0,14.0
+5,SFT-005,Kevlar Reinforced Safety Gloves,Safety,5,16.00,28,18,4.2,7.5
+6,ELE-006,Microcontroller Dev Board V4,Electronics,6,45.00,35,20,3.5,7.0
+7,PKG-007,Corrugated Shipping Boxes (L),Packaging,2,3.20,120,70,18.0,30.0
+8,HDW-008,Pneumatic Quick-Connect Coupler,Hardware,7,24.50,25,14,2.8,5.5
+9,SFT-009,Anti-Fog Polycarbonate Goggles,Safety,5,14.00,45,25,5.5,10.0
+10,OFF-010,Heavy Duty Industrial Stapler,Office Supplies,4,29.99,15,8,1.2,3.0
+11,ELE-011,Lithium-Ion Battery Pack 24V,Electronics,6,185.00,22,12,1.8,4.0
+12,HDW-012,Stainless Metric Hex Nut Assortment,Hardware,3,38.00,30,15,3.2,6.0
+13,SFT-013,Class-2 Hi-Vis Safety Vest,Safety,5,22.00,50,30,6.0,11.0
+14,PKG-014,Bubble Wrap Cushioning (500ft),Packaging,2,48.00,20,10,2.0,4.5
+15,OFF-015,Direct Thermal Transfer Ribbon,Office Supplies,4,19.50,35,20,4.0,8.0
+16,ELE-016,Optical Proximity Switch M18,Electronics,1,85.00,25,15,2.0,4.0
+17,HDW-017,Precision Torque Wrench 1/2",Hardware,7,95.00,12,6,0.8,2.0
+18,SFT-018,Organic Vapor Respirator Cartridge,Safety,5,34.00,40,24,4.5,8.0
+19,PKG-019,Stretch Wrap Film 80 Gauge,Packaging,2,26.50,45,28,5.0,9.0
+20,ELE-020,Din-Rail Switched Power Supply 24V,Electronics,1,110.00,18,10,1.5,3.5
+
